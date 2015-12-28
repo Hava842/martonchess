@@ -4,6 +4,16 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>Castling.h</itemPath>
+      <itemPath>CastlingType.h</itemPath>
+      <itemPath>Color.h</itemPath>
+      <itemPath>FenString.h</itemPath>
+      <itemPath>File.h</itemPath>
+      <itemPath>Piece.h</itemPath>
+      <itemPath>Piecetype.h</itemPath>
+      <itemPath>Position.h</itemPath>
+      <itemPath>Rank.h</itemPath>
+      <itemPath>Square.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -12,6 +22,15 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>Castling.cpp</itemPath>
+      <itemPath>CastlingType.cpp</itemPath>
+      <itemPath>Color.cpp</itemPath>
+      <itemPath>FenString.cpp</itemPath>
+      <itemPath>File.cpp</itemPath>
+      <itemPath>Piece.cpp</itemPath>
+      <itemPath>Position.cpp</itemPath>
+      <itemPath>Rank.cpp</itemPath>
+      <itemPath>Square.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -36,6 +55,44 @@
       </toolsSet>
       <compileType>
       </compileType>
+      <item path="Castling.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Castling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CastlingType.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CastlingType.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Color.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Color.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FenString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FenString.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="File.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="File.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Piece.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Piece.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Piecetype.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Position.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Position.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Rank.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Rank.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Square.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Square.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -59,6 +116,44 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="Castling.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Castling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="CastlingType.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="CastlingType.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Color.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Color.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FenString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="FenString.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="File.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="File.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Piece.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Piece.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Piecetype.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Position.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Position.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Rank.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Rank.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Square.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Square.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
