@@ -1,8 +1,9 @@
 #ifndef FENSTRING_H
 #define FENSTRING_H
 
-#include <stdexcept>
-#include <string>
+#include "Position.h"
+
+#include <array>
 
 class FenString {
 public:
@@ -59,8 +60,8 @@ private:
   static const char r7_NOTATION = '7';
   static const char r8_NOTATION = '8';
 
-  Notation();
-  ~Notation();
+  FenString();
+  ~FenString();
 
   static int colorOf(char notation);
   static char transform(char notation, int color);

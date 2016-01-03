@@ -1,18 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   Castling.h
- * Author: mh740
- *
- * Created on December 28, 2015, 9:35 AM
- */
-
 #ifndef CASTLING_H
 #define CASTLING_H
+
+#include "Color.h"
+#include "CastlingType.h"
 
 class Castling {
 public:

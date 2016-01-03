@@ -1,7 +1,7 @@
 #ifndef PIECETYPE_H
 #define PIECETYPE_H
 
-#include<array>
+#include <array>
 
 class PieceType {
 public:

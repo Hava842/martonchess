@@ -18,6 +18,8 @@
 
 class Piece {
 public:
+  static const int MASK = 0x1F;
+    
   static const int WHITE_PAWN = 0;
   static const int WHITE_KNIGHT = 1;
   static const int WHITE_BISHOP = 2;

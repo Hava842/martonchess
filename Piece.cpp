@@ -1,4 +1,9 @@
+
 #include "Piece.h"
+#include "Color.h"
+#include "PieceType.h"
+
+#include <cassert>
 
 const std::array<int, Piece::VALUES_SIZE> Piece::values = {
   WHITE_PAWN, WHITE_KNIGHT, WHITE_BISHOP, WHITE_ROOK, WHITE_QUEEN, WHITE_KING,

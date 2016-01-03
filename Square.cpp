@@ -1,17 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   Square.cpp
- * Author: mh740
- * 
- * Created on December 28, 2015, 9:24 AM
- */
 
 #include "Square.h"
+#include "File.h"
+#include "Rank.h"
+
+#include <cassert>
 
 const std::array<int, Square::VALUES_SIZE> Square::values = {
   a1, b1, c1, d1, e1, f1, g1, h1,

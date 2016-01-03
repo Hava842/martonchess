@@ -1,24 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   Board.h
- * Author: mh740
- *
- * Created on December 28, 2015, 8:07 AM
- */
 
 #ifndef BOARD_H
 #define BOARD_H
 
-#include<string>
-#include<vector>
-#include<boost>
+#include "Bitboard.h"
+#include "Color.h"
+#include "Castling.h"
+#include "Square.h"
+#include "Piece.h"
+#include "PieceType.h"
+#include "Depth.h"
 
-typedef unsigned long long int U64;
+#include <random>
 
 class Position {
 public:

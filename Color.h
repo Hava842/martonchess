@@ -1,16 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   Color.h
- * Author: mh740
- *
- * Created on December 28, 2015, 9:33 AM
- */
-
 #ifndef COLOR_H
 #define COLOR_H
 

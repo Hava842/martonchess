@@ -1,4 +1,14 @@
+
 #include "FenString.h"
+#include "File.h"
+#include "Rank.h"
+#include "PieceType.h"
+#include "CastlingType.h"
+
+#include <cassert>
+#include <string>
+#include <sstream>
+#include <cctype>
 
 const std::string FenString::STANDARDPOSITION =
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

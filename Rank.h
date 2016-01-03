@@ -1,18 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   Rank.h
- * Author: mh740
- *
- * Created on December 28, 2015, 9:22 AM
- */
 
 #ifndef RANK_H
 #define RANK_H
+
+#include <array>
 
 class Rank {
 public:
