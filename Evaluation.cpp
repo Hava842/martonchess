@@ -14,6 +14,125 @@ int Evaluation::mobilityWeight = 80;
  * @param position the position.
  * @return the evaluation value in centipawns.
  */
+int Evaluation::evaluateHeavy(Position& position) {
+  // Initialize
+  int myColor = position.activeColor;
+  int oppositeColor = Color::opposite(myColor);
+  int value = 0;
+
+  // Evaluate pawn structure
+  int pawnScore = (evaluatePawn(myColor, position) - evaluatePawn(oppositeColor, position))
+      * pawnWeight / MAX_WEIGHT;
+  
+  // Evaluate material
+  int materialScore = (evaluateMaterial(myColor, position) - evaluateMaterial(oppositeColor, position))
+      * materialWeight / MAX_WEIGHT;
+  value += materialScore;
+
+  // Evaluate mobility
+  int mobilityScore = (evaluateMobility(myColor, position) - evaluateMobility(oppositeColor, position))
+      * mobilityWeight / MAX_WEIGHT;
+  value += mobilityScore;
+
+  // Add Tempo
+  value += TEMPO;
+
+  assert(std::abs(value) < Value::CHECKMATE_THRESHOLD);
+  return value;
+}
+
+int Evaluation::evaluatePawn(int color, Position& position) {
+  assert(Color::isValid(color));
+  int halfOpenFiles = 0XFF;
+  
+  // Loop through all pawns of the current color and score each pawn
+  for (auto squares = position.pieces[color][PieceType::PAWN].squares; squares != 0; squares = Bitboard::remainder(squares)) {
+    int square = Bitboard::next(squares);
+    int file = getFile(square);
+    int rank = getRank(square);
+
+    halfOpenFiles &= ~(1 << file);
+
+    previousLeftSquare = color == Color.WHITE ? square + Square.SW : square + Square.NW;
+    previousRightSquare = color == Color.WHITE ? square + Square.SE : square + Square.NE;
+    
+    // Flag the pawn as passed, isolated, doubled or member of a pawn
+    // chain (but not the backward one).
+    bool chain = false;
+    if (Square.isValid(previousLeftSquare)) {
+        chain |= squares & Bitboard.toBitSquare(previousLeftSquare);
+    }
+    if (Square.isValid(previousRightSquare)) {
+        chain |= squares & Bitboard.toBitSquare(previousLeftSquare);
+    }
+    
+    isolated = !squares   & adjacent_files_bb(f));
+    doubled  =  squares   & forward_bb(Us, s);
+    opposed  =  squares & forward_bb(Us, s);
+    passed   = !(position.pieces[Color.opposite(color)][PieceType::PAWN].squares & passed_pawn_mask(color, square));
+
+    // Test for backward pawn
+    backward = false;
+
+    // If the pawn is passed, isolated, or member of a pawn chain it cannot
+    // be backward. If there are friendly pawns behind on adjacent files
+    // or if can capture an enemy pawn it cannot be backward either.
+    if (   !(passed | isolated | chain)
+            && !(ourPawns & attack_span_mask(Them, s))
+            && !(pos.attacks_from<PAWN>(s, Us) & theirPawns))
+    {
+          // We now know that there are no friendly pawns beside or behind this
+          // pawn on adjacent files. We now check whether the pawn is
+          // backward by looking in the forward direction on the adjacent
+          // files, and seeing whether we meet a friendly or an enemy pawn first.
+          b = pos.attacks_from<PAWN>(s, Us);
+
+          // Note that we are sure to find something because pawn is not passed
+          // nor isolated, so loop is potentially infinite, but it isn't.
+          while (!(b & (ourPawns | theirPawns)))
+              Us == WHITE ? b <<= 8 : b >>= 8;
+
+          // The friendly pawn needs to be at least two ranks closer than the
+          // enemy pawn in order to help the potentially backward pawn advance.
+          backward = (b | (Us == WHITE ? b << 8 : b >> 8)) & theirPawns;
+      }
+
+      assert(opposed | passed | (attack_span_mask(Us, s) & theirPawns));
+
+      // A not passed pawn is a candidate to become passed if it is free to
+      // advance and if the number of friendly pawns beside or behind this
+      // pawn on adjacent files is higher or equal than the number of
+      // enemy pawns in the forward direction on the adjacent files.
+      candidate =   !(opposed | passed | backward | isolated)
+                 && (b = attack_span_mask(Them, s + pawn_push(Us)) & ourPawns) != 0
+                 &&  popcount<Max15>(b) >= popcount<Max15>(attack_span_mask(Us, s) & theirPawns);
+
+      // Passed pawns will be properly scored in evaluation because we need
+      // full attack info to evaluate passed pawns. Only the frontmost passed
+      // pawn on each file is considered a true passed pawn.
+      if (passed && !doubled)
+          e->passedPawns[Us] |= s;
+
+      // Score this pawn
+      if (isolated)
+          value -= IsolatedPawnPenalty[opposed][f];
+
+      if (doubled)
+          value -= DoubledPawnPenalty[opposed][f];
+
+      if (backward)
+          value -= BackwardPawnPenalty[opposed][f];
+
+      if (chain)
+          value += ChainBonus[f];
+
+      if (candidate)
+          value += CandidateBonus[relative_rank(Us, s)];
+  }
+
+  return value;
+}
+
 int Evaluation::evaluate(Position& position) {
   // Initialize
   int myColor = position.activeColor;

@@ -5,4 +5,16 @@
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/File.h</file>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/File.cpp</file>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/Bitboard.h</file>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/Square.cpp</file>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/Bitboard.cpp</file>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/Evaluation.cpp</file>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/Square.h</file>
+            <file>file:/home/mh740/NetBeansProjects/martonchess/main.cpp</file>
+        </group>
+    </open-files>
 </project-private>

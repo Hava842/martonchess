@@ -56,7 +56,7 @@ void MartonChess::receiveInitialize() {
 
   // We must send an initialization answer back!
   std::cout << "id name MartonChess 1.6.1-cpp" << std::endl;
-  std::cout << "id author Phokham Nonava" << std::endl;
+  std::cout << "id author MHavasi" << std::endl;
   std::cout << "uciok" << std::endl;
 }
 

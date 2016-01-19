@@ -22,6 +22,7 @@ public:
   static uint64_t remainder(uint64_t);
   int size();
   void add(int square);
+  void addFile(int file);
   void remove(int square);
 
 private:
