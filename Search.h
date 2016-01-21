@@ -17,17 +17,17 @@ class Search {
 public:
     Search(Protocol& protocol);
 
-    void newSearch(Position& position, uint64_t searchTime, bool quiescent);
+    void newSearch(Position& position, uint64_t searchTime);
     void reset();
     void resume();
     void suspend();
-    void ponderHit();
+    void startTimer();
 
 private:
 
     class Timer {
     public:
-        Timer(std::atomic<bool>& timerRunning);
+        Timer(std::atomic<bool>& timerAbort);
 
         void start(uint64_t searchTime);
         void kill();
@@ -36,10 +36,11 @@ private:
         std::condition_variable condition;
         std::thread thread;
 
-        bool& timerRunning;
+        std::atomic<bool>& timerAbort;
         void run(uint64_t searchTime);
     };
 
+    // Multi threading
     void run();
     std::thread worker;
     std::atomic<bool> abort;
@@ -48,36 +49,32 @@ private:
     std::mutex suspendedmutex;
     std::condition_variable suspendedcondition;
     
-    bool quiescent;
+    // Protocol
     Protocol& protocol;
 
+    // Tools
+    Evaluation evaluation;
+    std::array<MoveGenerator, Depth::MAX_PLY> moveGenerators;
+    
+    // State
+    Position position;
     bool running;
     uint64_t searchTime;
     Timer timer;
-    std::atomic<bool> timerRunning;
-    bool timerMatters;
+    std::atomic<bool> timerAbort;
 
-    Position position;
-    Evaluation evaluation;
-
-    // Move generator for each depth
-    std::array<MoveGenerator, Depth::MAX_PLY> moveGenerators;
 
     // Search parameters
     MoveList<RootEntry> rootMoves;
-    bool abort;
     uint64_t totalNodes;
-    const int initialDepth = 1;
     int currentDepth;
     int currentMaxDepth;
     int currentMove;
     int currentMoveNumber;
-    std::array<MoveVariation, Depth::MAX_PLY + 1 > pv;
+    int bestResponse;
 
     void stopConditions();
-    void searchRoot(int depth, int alpha, int beta);
     int search(int depth, int alpha, int beta, int ply);
-    int quiescent(int depth, int alpha, int beta, int ply);
 };
 
 #endif /* SEARCH_H */

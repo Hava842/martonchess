@@ -10,7 +10,7 @@
 
 /**
  * This class stores our moves for a specific position. For the root node we
- * will populate pv for every root move.
+ * will populate pondermove for every root move.
  */
 template<class T>
 class MoveList {
@@ -41,7 +41,7 @@ public:
 
 class RootEntry : public MoveEntry {
 public:
-    MoveVariation pv;
+    int pondermove = Move::NOMOVE;
 };
 
 

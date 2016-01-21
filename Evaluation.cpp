@@ -14,6 +14,8 @@ int Evaluation::mobilityWeight = 80;
  * @param position the position.
  * @return the evaluation value in centipawns.
  */
+
+/*
 int Evaluation::evaluateHeavy(Position& position) {
     // Initialize
     int myColor = position.activeColor;
@@ -131,6 +133,7 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 
     return value;
 }
+*/
 
 int Evaluation::evaluate(Position& position) {
     // Initialize

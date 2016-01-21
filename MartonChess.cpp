@@ -42,11 +42,11 @@ void MartonChess::run() {
 void MartonChess::receiveQuit() {
     // We received a quit command. Stop calculating now and
     // cleanup!
-    search->quit();
+    search->suspend();
 }
 
 void MartonChess::receiveInitialize() {
-    search->stop();
+    search->suspend();
 
     // We received an initialization request.
 
@@ -55,7 +55,7 @@ void MartonChess::receiveInitialize() {
     // program.
 
     // We must send an initialization answer back!
-    std::cout << "id name MartonChess 1.6.1-cpp" << std::endl;
+    std::cout << "id name MartonChess" << std::endl;
     std::cout << "id author MHavasi" << std::endl;
     std::cout << "uciok" << std::endl;
 }
@@ -70,7 +70,7 @@ void MartonChess::receiveReady() {
 }
 
 void MartonChess::receiveNewGame() {
-    search->stop();
+    search->suspend();
 
     // We received a new game command.
 
@@ -79,7 +79,7 @@ void MartonChess::receiveNewGame() {
 }
 
 void MartonChess::receivePosition(std::istringstream& input) {
-    search->stop();
+    search->suspend();
 
     // We received an position command. Just setup the position.
 
@@ -133,31 +133,17 @@ void MartonChess::receivePosition(std::istringstream& input) {
 }
 
 void MartonChess::receiveGo(std::istringstream& input) {
-    search->stop();
+    search->suspend();
 
     // We received a start command. Extract all parameters from the
     // command and start the search.
     std::string token;
     input >> token;
-    if (token == "depth") {
-        int searchDepth;
-        if (input >> searchDepth) {
-            search->newDepthSearch(*currentPosition, searchDepth);
-        } else {
-            throw std::exception();
-        }
-    } else if (token == "nodes") {
-        uint64_t searchNodes;
-        if (input >> searchNodes) {
-            search->newNodesSearch(*currentPosition, searchNodes);
-        }
-    } else if (token == "movetime") {
+    if (token == "movetime") {
         uint64_t searchTime;
         if (input >> searchTime) {
-            search->newTimeSearch(*currentPosition, searchTime);
+            search->newSearch(*currentPosition, searchTime);
         }
-    } else if (token == "infinite") {
-        search->newInfiniteSearch(*currentPosition);
     } else {
         uint64_t whiteTimeLeft = 1;
         uint64_t whiteTimeIncrement = 0;
@@ -192,29 +178,34 @@ void MartonChess::receiveGo(std::istringstream& input) {
             }
         } while (input >> token);
 
-        if (ponder) {
-            search->newPonderSearch(*currentPosition,
-                    whiteTimeLeft, whiteTimeIncrement, blackTimeLeft, blackTimeIncrement, searchMovesToGo);
+        uint64_t searchTime;
+        if (currentPosition->activeColor == Color::WHITE) {
+            searchTime = (whiteTimeLeft / searchMovesToGo) - 1000;
         } else {
-            search->newClockSearch(*currentPosition,
-                    whiteTimeLeft, whiteTimeIncrement, blackTimeLeft, blackTimeIncrement, searchMovesToGo);
+            searchTime = (blackTimeLeft / searchMovesToGo) - 1000;
+        }
+        
+        if (ponder) {
+            search->newSearch(*currentPosition, searchTime);
+            search->startTimer();
+        } else {
+            search->newSearch(*currentPosition, searchTime);
         }
     }
 
-    // Go...
-    search->start();
+    search->resume();
     startTime = std::chrono::system_clock::now();
     statusStartTime = startTime;
 }
 
 void MartonChess::receivePonderHit() {
-    // We received a ponder hit command. Just call ponderhit().
-    search->ponderhit();
+    search->startTimer();
+    
 }
 
 void MartonChess::receiveStop() {
     // We received a stop command. If a search is running, stop it.
-    search->stop();
+    search->suspend();
 }
 
 void MartonChess::sendBestMove(int bestMove, int ponderMove) {
@@ -281,12 +272,12 @@ void MartonChess::sendMove(RootEntry entry, int currentDepth, int currentMaxDept
         std::cout << " score cp " << entry.value;
     }
 
-    if (entry.pv.size > 0) {
+    /*if (entry.pv.size > 0) {
         std::cout << " pv";
         for (int i = 0; i < entry.pv.size; ++i) {
             std::cout << " " << fromMove(entry.pv.moves[i]);
         }
-    }
+    }*/
 
     std::cout << std::endl;
 

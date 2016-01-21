@@ -68,13 +68,6 @@ void Bitboard::add(int square) {
     squares |= 1ULL << toBitSquare(square);
 }
 
-void Bitboard::addFile(int file) {
-    assert(File::isValid(file));
-    assert((squares & (0x101010101010101ULL << file)) == 0);
-
-    squares |= 0x101010101010101ULL << file;
-}
-
 void Bitboard::remove(int square) {
     assert(Square::isValid(square));
     assert((squares & (1ULL << toBitSquare(square))) != 0);

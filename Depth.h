@@ -5,6 +5,7 @@ class Depth {
 public:
     static const int MAX_PLY = 256;
     static const int MAX_DEPTH = 64;
+    static const int MAX_QUISCENT = 16;
 
 private:
     Depth();
