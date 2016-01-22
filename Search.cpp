@@ -16,15 +16,15 @@ void Search::Timer::run(uint64_t searchTime) {
 }
 
 void Search::Timer::start(uint64_t searchTime) {
-    if (thread.joinable()) {
-        thread.join();
-    }
+    
     thread = std::thread(&Search::Timer::run, this, searchTime);
 }
 
 void Search::Timer::kill() {
     condition.notify_all();
-    thread.join();
+    if (thread.joinable()) {
+        thread.join();
+    }
 }
 
 Search::Search(Protocol& protocol): protocol(protocol), timer(timerAbort) {
@@ -55,9 +55,12 @@ void Search::resume() {
 }
 
 void Search::suspend() {
-    abort = true;
     std::unique_lock<std::mutex> lock(suspendedmutex);
-    suspendedcondition.wait(lock);
+    if (running) {
+        abort = true;
+        suspendedcondition.wait(lock);
+    }
+    
 }
 
 void Search::startTimer() {
@@ -77,7 +80,7 @@ void Search::run() {
             rootMoves.entries[i]->move = rootMovesRef.entries[i]->move;
         }
         
-        for (int depth = 1; depth < Depth::MAX_DEPTH; depth++) {
+        for (int depth = 2; depth <= 2 /*Depth::MAX_DEPTH*/; depth++) {
             // reset rootMove values
             for (int i = 0; i < rootMoves.size; i++) {
                 rootMoves.entries[i]->value = -Value::INFINITE;
@@ -89,7 +92,10 @@ void Search::run() {
             for (int i = 0; i < rootMoves.size; i++) {
                 int move = rootMoves.entries[i]->move;
                 position.makeMove(move);
-                int value = search(depth, -beta, alpha, 1);
+                int value = -search(depth, -beta, -alpha, 1);
+                rootMoves.entries[i]->value = value;
+                std::cout << " rootmove value: " << value;
+                protocol.sendBestMove(move, Move::NOMOVE);
                 position.undoMove(move);
 
                 if (value > alpha) {
@@ -131,7 +137,7 @@ int Search::search(int depth, int alpha, int beta, int ply) {
 
     int bestValue = -Value::INFINITE;
 
-    if (!position.isCheck() && depth < 0) {
+    if (!position.isCheck() && depth <= 0) {
         bestValue = evaluation.evaluate(position);
         if (bestValue > alpha) {
             alpha = bestValue;
@@ -141,19 +147,25 @@ int Search::search(int depth, int alpha, int beta, int ply) {
         }
     }
 
-    auto possibleMoves = moveGenerators[depth].getMoves(position, ply, position.isCheck());
+    auto possibleMoves = moveGenerators[ply].getMoves(position, depth, position.isCheck());
     bool haveValidMove = false;
-    for (int i = 0; i < possibleMoves.entries.size(); i++) {
+    for (int i = 0; i < possibleMoves.size; i++) {
         int move = possibleMoves.entries[i]->move;
         int value = -Value::INFINITE;
         
         position.makeMove(move);
         if (!position.isCheck(Color::opposite(position.activeColor))) {
             haveValidMove = true;
-            value = search(depth - 1, -beta, -alpha, ply + 1);
+            value = -search(depth - 1, -beta, -alpha, ply + 1);
         }
         position.undoMove(move);
 
+        stopConditions();
+        
+        if (abort) {
+            return bestValue;
+        }
+        
         if (value > bestValue) {
             bestValue = value;
         }
@@ -162,7 +174,7 @@ int Search::search(int depth, int alpha, int beta, int ply) {
             alpha = value;
             bestResponse = move;
             if (value >= beta) {
-                return bestValue;
+                break;
             }
         }
     }
@@ -173,7 +185,7 @@ int Search::search(int depth, int alpha, int beta, int ply) {
     }
     
     //Stalemate
-    if (!haveValidMove) {
+    if (!haveValidMove && depth > 0) {
         return Value::DRAW;
     }
     

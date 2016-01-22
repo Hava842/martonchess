@@ -46,7 +46,6 @@ void MartonChess::receiveQuit() {
 }
 
 void MartonChess::receiveInitialize() {
-    search->suspend();
 
     // We received an initialization request.
 
@@ -187,9 +186,9 @@ void MartonChess::receiveGo(std::istringstream& input) {
         
         if (ponder) {
             search->newSearch(*currentPosition, searchTime);
-            search->startTimer();
         } else {
-            search->newSearch(*currentPosition, searchTime);
+            search->newSearch(*currentPosition, 5000);
+            search->startTimer();
         }
     }
 

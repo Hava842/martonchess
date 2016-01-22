@@ -52,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/Position.o \
 	${OBJECTDIR}/Rank.o \
 	${OBJECTDIR}/Search.o \
+	${OBJECTDIR}/Semaphore.o \
 	${OBJECTDIR}/Square.o \
 	${OBJECTDIR}/Value.o \
 	${OBJECTDIR}/main.o
@@ -61,8 +62,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11
-CXXFLAGS=-std=c++11
+CCFLAGS=-pthread -std=c++11
+CXXFLAGS=-pthread -std=c++11
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -165,6 +166,11 @@ ${OBJECTDIR}/Search.o: Search.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Search.o Search.cpp
+
+${OBJECTDIR}/Semaphore.o: Semaphore.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Semaphore.o Semaphore.cpp
 
 ${OBJECTDIR}/Square.o: Square.cpp 
 	${MKDIR} -p ${OBJECTDIR}
