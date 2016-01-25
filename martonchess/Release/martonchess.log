@@ -1,0 +1,28 @@
+﻿  stdafx.cpp
+  Bitboard.cpp
+  Castling.cpp
+  CastlingType.cpp
+  Color.cpp
+  Evaluation.cpp
+  FenString.cpp
+  File.cpp
+  main.cpp
+  martonchess.cpp
+  Move.cpp
+  MoveGenerator.cpp
+  MoveList.cpp
+  MoveType.cpp
+  Piece.cpp
+  PieceType.cpp
+  Position.cpp
+  Rank.cpp
+  Search.cpp
+  Semaphore.cpp
+  Square.cpp
+  Compiling...
+  Timer.cpp
+  Value.cpp
+  Generating code
+  All 993 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  martonchess.vcxproj -> C:\Users\Marci\Source\Repos\martonchess\martonchess\Release\martonchess.exe
