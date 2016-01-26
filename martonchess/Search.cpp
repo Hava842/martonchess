@@ -114,6 +114,7 @@ void Search::run() {
 
 		running = false;
 		suspendedcondition.notify_all();
+		//asdasd
 	}
 }
 
