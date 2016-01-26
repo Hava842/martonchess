@@ -101,6 +101,7 @@ public:
     static const std::vector<int> kingDirections;
 
     static bool isValid(int square);
+	static bool isCenter(int square);
     static int valueOf(int file, int rank);
     static int getFile(int square);
     static int getRank(int square);

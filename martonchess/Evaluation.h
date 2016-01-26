@@ -10,6 +10,7 @@ public:
 
     static int materialWeight;
     static int mobilityWeight;
+	static int centerWeight;
 
     int evaluate(Position& position);
 
@@ -19,6 +20,8 @@ private:
     int evaluateMaterial(int color, Position& position);
     int evaluateMobility(int color, Position& position);
     int evaluateMobility(int color, Position& position, int square, const std::vector<int>& directions);
+	int evaluateCenter(int color, Position& position);
+	int evaluateCenter(int color, Position& position, int square, const std::vector<int>& directions);
 };
 
 

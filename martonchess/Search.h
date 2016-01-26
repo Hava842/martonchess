@@ -22,6 +22,7 @@ public:
     void reset();
     void resume();
     void suspend();
+	void exit();
     void startTimer();
 
 private:
@@ -29,6 +30,7 @@ private:
     void run();
     std::thread worker;
     std::atomic<bool> abort;
+	std::atomic<bool> exitsearch;
     std::mutex wakeupmutex;
     std::condition_variable wakeupcondition;
     std::mutex suspendedmutex;

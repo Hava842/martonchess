@@ -1,27 +1,2 @@
-﻿  stdafx.cpp
-  Value.cpp
-  Timer.cpp
-  Square.cpp
-  Semaphore.cpp
-  Search.cpp
-  Rank.cpp
-  Position.cpp
-  PieceType.cpp
-  Piece.cpp
-  MoveType.cpp
-  MoveList.cpp
-  MoveGenerator.cpp
-  Move.cpp
-  martonchess.cpp
-  main.cpp
-  File.cpp
-  FenString.cpp
-  Evaluation.cpp
-  Color.cpp
-  CastlingType.cpp
-  Generating Code...
-  Compiling...
-  Castling.cpp
-  Bitboard.cpp
-  Generating Code...
+﻿  Search.cpp
   martonchess.vcxproj -> C:\Users\Marci\Source\Repos\martonchess\martonchess\Debug\martonchess.exe

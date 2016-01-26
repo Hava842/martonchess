@@ -49,6 +49,19 @@ bool Square::isValid(int square) {
     return (square & 0x88) == 0;
 }
 
+bool Square::isCenter(int square) {
+	switch (square) {
+		case (d4) :
+		case (e4) :
+		case (d5) :
+		case (e5) :
+			return true;
+			break;
+		default:
+			return false;
+	}
+}
+
 int Square::valueOf(int file, int rank) {
     assert(File::isValid(file));
     assert(Rank::isValid(rank));

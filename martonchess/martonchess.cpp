@@ -42,7 +42,7 @@ void MartonChess::run() {
 void MartonChess::receiveQuit() {
     // We received a quit command. Stop calculating now and
     // cleanup!
-    search->suspend();
+    search->exit();
 }
 
 void MartonChess::receiveInitialize() {
@@ -184,7 +184,6 @@ void MartonChess::receiveGo(std::istringstream& input) {
             searchTime = (blackTimeLeft / searchMovesToGo) - 1000;
         }
 
-		// Massive cocks
 		if (searchTime < 1000) {
 			if (currentPosition->activeColor == Color::WHITE) {
 				searchTime = (whiteTimeLeft / 10);

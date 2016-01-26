@@ -9,7 +9,8 @@ Search::Search(Protocol& protocol)
 	timer([&]()
 {
 	timerAbort = true;
-}) {
+}),
+exitsearch(false) {
 	reset();
 	worker = std::thread(&Search::run, this);
 }
@@ -45,14 +46,27 @@ void Search::suspend() {
 
 }
 
+void Search::exit() {
+	exitsearch = true;
+	suspend();
+	resume();
+	if (worker.joinable()) {
+		worker.join();
+	}
+	timer.stop();
+}
+
 void Search::startTimer() {
 	timer.start(true);
 }
 
 void Search::run() {
-	while (true) {
+	while (!exitsearch) {
 		std::unique_lock<std::mutex> lock(wakeupmutex);
 		wakeupcondition.wait(lock);
+		if (exitsearch) {
+			break;
+		}
 		running = true;
 
 		//Populate rootMoves
@@ -114,7 +128,6 @@ void Search::run() {
 
 		running = false;
 		suspendedcondition.notify_all();
-		//asdasd
 	}
 }
 
