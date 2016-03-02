@@ -1,10 +1,11 @@
-﻿  Search.cpp
-  Timer.cpp
+﻿  Evaluation.cpp
+  Search.cpp
+Search.cpp(140): warning C4244: '*=': conversion from 'double' to 'int', possible loss of data
   main.cpp
   martonchess.cpp
   Generating code
-  18 of 997 functions ( 1.8%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    8 functions had inline decision re-evaluated but remain unchanged
+  156 of 1057 functions (14.8%) were compiled, the rest were copied from previous compilation.
+    61 functions were new in current compilation
+    119 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  martonchess.vcxproj -> C:\Users\Marci\Source\Repos\martonchess\martonchess\Release\martonchess.exe
+  martonchess.vcxproj -> C:\Users\Marci\Source\Repos\martonchess\MartonChess\Release\martonchess.exe

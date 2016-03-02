@@ -16,7 +16,7 @@
 
 class Search {
 public:
-    Search(Protocol& protocol);
+    Search(Protocol& protocol, double stageRatio, double cutoffRatio);
 
     void newSearch(Position& position, uint64_t searchTime);
     void reset();
@@ -28,6 +28,7 @@ public:
 private:
     // Multi threading
     void run();
+	void mainLoop(MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCondition);
     std::thread worker;
     std::atomic<bool> abort;
 	std::atomic<bool> exitsearch;
@@ -48,6 +49,8 @@ private:
     bool running;
     uint64_t searchTime;
     Timer timer;
+	Timer stageTimer;
+	std::atomic<bool> heavyStage;
     std::atomic<bool> timerAbort;
 
 
@@ -59,6 +62,8 @@ private:
     int currentMove;
     int currentMoveNumber;
     int bestResponse;
+	double stageRatio;
+	double cutoffRatio;
 
     void stopConditions();
     int search(int depth, int alpha, int beta, int ply);

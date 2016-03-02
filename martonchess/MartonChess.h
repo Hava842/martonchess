@@ -7,7 +7,7 @@
 class MartonChess : public Protocol {
 public:
     void run();
-
+	MartonChess(double stageRatio, double cutoffRatio);
     virtual void sendBestMove(int bestMove, int ponderMove);
     virtual void sendStatus(
             int currentDepth, int currentMaxDepth, uint64_t totalNodes, int currentMove, int currentMoveNumber);
@@ -18,7 +18,7 @@ public:
     static std::string fromMove(int move);
 
 private:
-    std::unique_ptr<Search> search = std::unique_ptr<Search>(new Search(*this));
+    std::unique_ptr<Search> search;
     std::chrono::system_clock::time_point startTime;
     std::chrono::system_clock::time_point statusStartTime;
 

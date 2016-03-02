@@ -4,11 +4,17 @@
 #include <string>
 #include <cassert>
 
-Search::Search(Protocol& protocol)
+Search::Search(Protocol& protocol, double stageRatio, double cutoffRatio)
 	: protocol(protocol),
+	stageRatio(stageRatio),
+	cutoffRatio(cutoffRatio),
 	timer([&]()
 {
 	timerAbort = true;
+}),
+stageTimer([&]()
+{
+	heavyStage = true;
 }),
 exitsearch(false) {
 	reset();
@@ -21,13 +27,16 @@ void Search::newSearch(Position& position, uint64_t searchTime) {
 	this->position = position;
 	this->searchTime = searchTime;
 	timer.setInterval(std::chrono::milliseconds(searchTime));
+	stageTimer.setInterval(std::chrono::milliseconds((int) (searchTime * stageRatio)));
 
 }
 
 void Search::reset() {
 	searchTime = 0;
 	timer.stop();
+	stageTimer.stop();
 	timerAbort = false;
+	heavyStage = false;
 	running = false;
 	abort = false;
 	bestResponse = Move::NOMOVE;
@@ -54,10 +63,55 @@ void Search::exit() {
 		worker.join();
 	}
 	timer.stop();
+	stageTimer.stop();
 }
 
 void Search::startTimer() {
 	timer.start(true);
+	stageTimer.start(true);
+}
+
+void Search::mainLoop(MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCondition) {
+	for (int depth = 1; depth <= Depth::MAX_DEPTH; depth++) {
+
+		// reset rootMove values
+		for (int i = 0; i < rootMoves.size; i++) {
+			rootMoves.entries[i]->value = -Value::INFINITE;
+		}
+
+		int alpha = -Value::INFINITE;
+		int beta = Value::INFINITE;
+
+		for (int i = 0; i < rootMoves.size; i++) {
+			int move = rootMoves.entries[i]->move;
+			position.makeMove(move);
+			int value = -search(depth, -beta, -alpha, 1);
+			protocol.sendBestMove(move, Move::NOMOVE);
+			position.undoMove(move);
+
+			// If aborted we must not update the value.
+			stopConditions();
+			if (abort) {
+				break;
+			}
+
+			rootMoves.entries[i]->value = value;
+			rootMoves.entries[i]->pondermove = bestResponse;
+
+			if (value > alpha) {
+				alpha = value;
+			}
+		}
+		if (abort) {
+			break;
+		}
+
+		rootMoves.sort();
+		if (abortCondition) {
+			break;
+		}
+
+	}
 }
 
 void Search::run() {
@@ -76,46 +130,18 @@ void Search::run() {
 			rootMoves.entries[i]->move = rootMovesRef.entries[i]->move;
 		}
 
-		
+		// Stage 1
+		if (stageRatio > 0) {
+			mainLoop(rootMoves, heavyStage);
+		}
+		else {
+			heavyStage = true;
+		}
+		rootMoves.size *= cutoffRatio;
 
-		for (int depth = 1; depth <= Depth::MAX_DEPTH; depth++) {
-			std::cout << "depth " << depth << "abort " << abort << std::endl;
-
-			// reset rootMove values
-			for (int i = 0; i < rootMoves.size; i++) {
-				rootMoves.entries[i]->value = -Value::INFINITE;
-			}
-
-			int alpha = -Value::INFINITE;
-			int beta = Value::INFINITE;
-
-			for (int i = 0; i < rootMoves.size; i++) {
-				int move = rootMoves.entries[i]->move;
-				position.makeMove(move);
-				int value = -search(depth, -beta, -alpha, 1);
-				std::cout << " rootmove value: " << value;
-				protocol.sendBestMove(move, Move::NOMOVE);
-				position.undoMove(move);
-
-				// If aborted we must not update the value.
-				stopConditions();
-				if (abort) {
-					break;
-				}
-
-				rootMoves.entries[i]->value = value;
-				rootMoves.entries[i]->pondermove = bestResponse;
-
-				if (value > alpha) {
-					alpha = value;
-				}
-			}
-
-			if (abort) {
-				break;
-			}
-
-			rootMoves.sort();
+		// Stage 2
+		if (heavyStage && !abort) {
+			mainLoop(rootMoves, abort);
 		}
 
 		int bestMove = 0;
@@ -133,7 +159,7 @@ void Search::run() {
 
 int Search::search(int depth, int alpha, int beta, int ply) {
 	if (ply >= Depth::MAX_PLY) {
-		return evaluation.evaluate(position);
+		return evaluation.evaluate(position, heavyStage);
 	}
 
 	if (position.isRepetition() || position.hasInsufficientMaterial() || position.halfmoveClock >= 100) {
@@ -143,7 +169,7 @@ int Search::search(int depth, int alpha, int beta, int ply) {
 	int bestValue = -Value::INFINITE;
 
 	if (!position.isCheck() && depth <= 0) {
-		bestValue = evaluation.evaluate(position);
+		bestValue = evaluation.evaluate(position, heavyStage);
 		if (bestValue > alpha) {
 			alpha = bestValue;
 			if (bestValue >= beta) {

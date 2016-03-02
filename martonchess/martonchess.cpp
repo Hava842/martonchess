@@ -9,6 +9,8 @@
 #include <sstream>
 #include <cctype>
 
+MartonChess::MartonChess(double stageRatio, double cutoffRatio): search(new Search(*this, stageRatio, cutoffRatio)) {};
+
 void MartonChess::run() {
     std::cin.exceptions(std::iostream::eofbit | std::iostream::failbit | std::iostream::badbit);
     while (true) {
