@@ -71,8 +71,9 @@ void Search::startTimer() {
 	stageTimer.start(true);
 }
 
-void Search::mainLoop(MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCondition) {
-	for (int depth = 1; depth <= Depth::MAX_DEPTH; depth++) {
+int Search::mainLoop( MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCondition) {
+	int targetCutoff = rootMoves.size;
+	for (int depth = 0; depth <= Depth::MAX_DEPTH; depth++) {
 
 		// reset rootMove values
 		for (int i = 0; i < rootMoves.size; i++) {
@@ -85,13 +86,13 @@ void Search::mainLoop(MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCo
 		for (int i = 0; i < rootMoves.size; i++) {
 			int move = rootMoves.entries[i]->move;
 			position.makeMove(move);
-			int value = -search(depth, -beta, -alpha, 1);
-			protocol.sendBestMove(move, Move::NOMOVE);
+			int value = -search(depth, -beta, -alpha, 1, abortCondition);
+			//protocol.sendBestMove(move, Move::NOMOVE);
 			position.undoMove(move);
 
 			// If aborted we must not update the value.
 			stopConditions();
-			if (abort) {
+			if (abort || abortCondition) {
 				break;
 			}
 
@@ -102,16 +103,24 @@ void Search::mainLoop(MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCo
 				alpha = value;
 			}
 		}
-		if (abort) {
+		if (abort || abortCondition) {
 			break;
 		}
 
 		rootMoves.sort();
-		if (abortCondition) {
-			break;
+		targetCutoff = (int)(rootMoves.size * cutoffRatio);
+		while (targetCutoff < rootMoves.size) {
+			if (rootMoves.entries[targetCutoff - 1]->value == rootMoves.entries[targetCutoff]->value) {
+				targetCutoff++;
+			}
+			else {
+				break;
+			}
 		}
 
 	}
+
+	return targetCutoff;
 }
 
 void Search::run() {
@@ -126,18 +135,21 @@ void Search::run() {
 		//Populate rootMoves
 		MoveList<MoveEntry>& rootMovesRef = moveGenerators[0].getLegalMoves(position, 1, position.isCheck());
 		rootMoves.size = rootMovesRef.size;
+		int targetCutoff = rootMoves.size;
 		for (int i = 0; i < rootMovesRef.size; i++) {
 			rootMoves.entries[i]->move = rootMovesRef.entries[i]->move;
 		}
 
 		// Stage 1
 		if (stageRatio > 0) {
-			mainLoop(rootMoves, heavyStage);
+			targetCutoff = mainLoop(rootMoves, heavyStage);
 		}
 		else {
 			heavyStage = true;
 		}
-		rootMoves.size *= cutoffRatio;
+
+		// Cutoff
+		rootMoves.size = targetCutoff;
 
 		// Stage 2
 		if (heavyStage && !abort) {
@@ -157,7 +169,7 @@ void Search::run() {
 	}
 }
 
-int Search::search(int depth, int alpha, int beta, int ply) {
+int Search::search(int depth, int alpha, int beta, int ply, std::atomic<bool>& abortCondition) {
 	if (ply >= Depth::MAX_PLY) {
 		return evaluation.evaluate(position, heavyStage);
 	}
@@ -187,7 +199,7 @@ int Search::search(int depth, int alpha, int beta, int ply) {
 		position.makeMove(move);
 		if (!position.isCheck(Color::opposite(position.activeColor))) {
 			haveValidMove = true;
-			value = -search(depth - 1, -beta, -alpha, ply + 1);
+			value = -search(depth - 1, -beta, -alpha, ply + 1, abortCondition);
 		}
 		else {
 			value = bestValue;
@@ -206,7 +218,7 @@ int Search::search(int depth, int alpha, int beta, int ply) {
 		}
 
 		stopConditions();
-		if (abort) {
+		if (abortCondition) {
 			return bestValue;
 		}
 	}

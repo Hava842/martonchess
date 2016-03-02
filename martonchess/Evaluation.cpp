@@ -6,8 +6,8 @@
 #include <cassert>
 
 int Evaluation::materialWeight = 100;
-int Evaluation::mobilityWeight = 60;
-int Evaluation::centerWeight = 50;
+int Evaluation::mobilityWeight = 70;
+int Evaluation::centerWeight = 60;
 int Evaluation::pawnStructureWeight = 50;
 int Evaluation::kingSafetyWeight = 60;
 
@@ -115,12 +115,12 @@ int Evaluation::evaluateKingSafety(int color, Position& position) {
 	int pawnShieldCount = Bitboard::bitCount(pawnShield.squares & pawns);
 
 	Bitboard rookShield;
-	if (Square::isValid(square + Square::E)) { pawnShield.add(square + Square::NE); }
+	if (Square::isValid(square + Square::E)) { pawnShield.add(square + Square::E); }
 	if (Square::isValid(square + Square::W)) { pawnShield.add(square + Square::W); }
 	int rookShieldCount = Bitboard::bitCount(rookShield.squares & rooks);
 
-	return pawnShieldCount * 10
-		+ rookShieldCount * 50;
+	return pawnShieldCount * 5
+		+ rookShieldCount * 15;
 }
 
 int Evaluation::evaluateCenter(int color, Position& position) {
@@ -152,7 +152,7 @@ int Evaluation::evaluateCenter(int color, Position& position) {
 
 	return pawnCenter * 3
 		+ knightCenter * 4
-		+ bishopCenter * 4
+		+ bishopCenter * 2
 		+ queenCenter;
 }
 
@@ -210,9 +210,9 @@ int Evaluation::evaluate(Position& position, bool heavy) {
 		value += pawnScore;
 
 		// Evaluate King Safety
-		int kingScore = (evaluateKingSafety(myColor, position) - evaluateKingSafety(oppositeColor, position))
+		int kingSafetyScore = (evaluateKingSafety(myColor, position) - evaluateKingSafety(oppositeColor, position))
 			* kingSafetyWeight / MAX_WEIGHT;
-		value += kingSafetyWeight;
+		value += kingSafetyScore;
 	}
 
 	// Add Tempo

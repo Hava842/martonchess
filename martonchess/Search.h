@@ -28,7 +28,7 @@ public:
 private:
     // Multi threading
     void run();
-	void mainLoop(MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCondition);
+	int mainLoop(MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCondition);
     std::thread worker;
     std::atomic<bool> abort;
 	std::atomic<bool> exitsearch;
@@ -66,7 +66,7 @@ private:
 	double cutoffRatio;
 
     void stopConditions();
-    int search(int depth, int alpha, int beta, int ply);
+    int search(int depth, int alpha, int beta, int ply, std::atomic<bool>& abortCondition);
 };
 
 #endif /* SEARCH_H */
