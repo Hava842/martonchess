@@ -14,10 +14,11 @@ public:
 	static int pawnStructureWeight;
 	static int kingSafetyWeight;
 
-    int evaluate(Position& position, bool heavy);
+    int evaluate(Position& position, bool heavy, int beta);
 
 private:
     static const int MAX_WEIGHT = 100;
+	static const int BETA_THRESHOLD = 150;
 
 	int evaluateKingSafety(int color, Position& position);
 	int evaluatePawn(int color, Position& position);

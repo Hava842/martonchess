@@ -7,7 +7,7 @@
 class MartonChess : public Protocol {
 public:
     void run();
-	MartonChess(double stageRatio, double cutoffRatio);
+	MartonChess(double stageRatio, double cutoffRatio, bool enableBetaThreshold);
     virtual void sendBestMove(int bestMove, int ponderMove);
     virtual void sendStatus(
             int currentDepth, int currentMaxDepth, uint64_t totalNodes, int currentMove, int currentMoveNumber);

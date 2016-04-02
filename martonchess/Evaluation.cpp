@@ -181,7 +181,7 @@ int Evaluation::evaluateCenter(int color, Position& position, int square, const 
 	return center;
 }
 
-int Evaluation::evaluate(Position& position, bool heavy) {
+int Evaluation::evaluate(Position& position, bool heavy, int beta) {
 	// Initialize
 	int myColor = position.activeColor;
 	int oppositeColor = Color::opposite(myColor);
@@ -191,6 +191,10 @@ int Evaluation::evaluate(Position& position, bool heavy) {
 	int materialScore = (evaluateMaterial(myColor, position) - evaluateMaterial(oppositeColor, position))
 		* materialWeight / MAX_WEIGHT;
 	value += materialScore;
+
+	if (value >= beta + BETA_THRESHOLD) {
+		return value;
+	}
 
 	if (heavy) {
 		// Evaluate mobility

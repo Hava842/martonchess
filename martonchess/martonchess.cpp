@@ -9,7 +9,7 @@
 #include <sstream>
 #include <cctype>
 
-MartonChess::MartonChess(double stageRatio, double cutoffRatio): search(new Search(*this, stageRatio, cutoffRatio)) {};
+MartonChess::MartonChess(double stageRatio, double cutoffRatio, bool enableBetaThreshold): search(new Search(*this, stageRatio, cutoffRatio, enableBetaThreshold)) {};
 
 void MartonChess::run() {
     std::cin.exceptions(std::iostream::eofbit | std::iostream::failbit | std::iostream::badbit);
@@ -150,7 +150,7 @@ void MartonChess::receiveGo(std::istringstream& input) {
         uint64_t whiteTimeIncrement = 0;
         uint64_t blackTimeLeft = 1;
         uint64_t blackTimeIncrement = 0;
-        int searchMovesToGo = 40;
+        int searchMovesToGo = 50;
         bool ponder = false;
 
         do {
@@ -181,9 +181,9 @@ void MartonChess::receiveGo(std::istringstream& input) {
 
         uint64_t searchTime;
         if (currentPosition->activeColor == Color::WHITE) {
-            searchTime = (whiteTimeLeft / searchMovesToGo) - 1000;
+            searchTime = (whiteTimeLeft - 1000) / searchMovesToGo;
         } else {
-            searchTime = (blackTimeLeft / searchMovesToGo) - 1000;
+            searchTime = (blackTimeLeft - 1000) / searchMovesToGo;
         }
 
 		if (searchTime < 1000) {
@@ -194,12 +194,9 @@ void MartonChess::receiveGo(std::istringstream& input) {
 				searchTime = (blackTimeLeft / 10);
 			}
 		}
-        if (ponder) {
-            search->newSearch(*currentPosition, searchTime);
-        } else {
-            search->newSearch(*currentPosition, searchTime);
-            search->startTimer();
-        }
+        search->newSearch(*currentPosition, searchTime);
+        search->startTimer();
+        
     }
 
     search->resume();

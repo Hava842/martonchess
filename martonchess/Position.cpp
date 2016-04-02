@@ -9,6 +9,7 @@
 #include <cassert>
 #include <algorithm>
 #include <sstream>
+#include <array>
 
 // Initialize the zobrist keys
 
@@ -75,7 +76,9 @@ Position::Position(const Position& position)
 
     this->halfmoveNumber = position.halfmoveNumber;
 
-    this->statesSize = 0;
+	this->statesSize = position.statesSize;
+
+	this->states = position.states;
 }
 
 Position& Position::operator=(const Position& position) {
@@ -93,7 +96,9 @@ Position& Position::operator=(const Position& position) {
 
     this->halfmoveNumber = position.halfmoveNumber;
 
-    this->statesSize = 0;
+    this->statesSize = position.statesSize;
+
+	this->states = position.states;
 
     return *this;
 }

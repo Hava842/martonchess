@@ -18,7 +18,14 @@ int main(int argc, char* argv[]) {
 	if (cutoffRatio > 1 || cutoffRatio < 0) {
 		cutoffRatio = 1;
 	}
-    std::unique_ptr<MartonChess> martonchess(new MartonChess(stageRatio, cutoffRatio));
+
+	bool bt = false;
+
+	if (argc > 3) {
+		bt = true;
+	}
+
+    std::unique_ptr<MartonChess> martonchess(new MartonChess(stageRatio, cutoffRatio, bt));
     martonchess->run();
     return 0;
 }

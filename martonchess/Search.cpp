@@ -1,13 +1,15 @@
 #include "Search.h"
+#include "MartonChess.h"
 
 #include <iostream>
 #include <string>
 #include <cassert>
 
-Search::Search(Protocol& protocol, double stageRatio, double cutoffRatio)
+Search::Search(Protocol& protocol, double stageRatio, double cutoffRatio, bool enableBetaThreshold)
 	: protocol(protocol),
 	stageRatio(stageRatio),
 	cutoffRatio(cutoffRatio),
+	enableBetaThreshold(enableBetaThreshold),
 	timer([&]()
 {
 	timerAbort = true;
@@ -108,16 +110,22 @@ int Search::mainLoop( MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCo
 		}
 
 		rootMoves.sort();
-		targetCutoff = (int)(rootMoves.size * cutoffRatio);
-		while (targetCutoff < rootMoves.size) {
-			if (rootMoves.entries[targetCutoff - 1]->value == rootMoves.entries[targetCutoff]->value) {
-				targetCutoff++;
-			}
-			else {
-				break;
-			}
+
+		for (int i = 0; i < rootMoves.size; i++) {
+			auto rootMoveEntry = rootMoves.entries[i];
+			std::cout << "move: " << MartonChess::fromMove(rootMoveEntry->move) << "score: " << rootMoveEntry->value << std::endl;
 		}
 
+		targetCutoff = 0;
+		int targetCutoffValue = 
+			(int) (rootMoves.entries[rootMoves.size - 1]->value
+					+ (rootMoves.entries[0]->value - rootMoves.entries[rootMoves.size - 1]->value)
+					* cutoffRatio);
+		while (rootMoves.entries[targetCutoff]->value >= targetCutoffValue) {
+			targetCutoff++;
+			if (targetCutoff >= rootMoves.size)
+				break;
+		}
 	}
 
 	return targetCutoff;
@@ -163,25 +171,27 @@ void Search::run() {
 			ponderMove = rootMoves.entries[0]->pondermove;
 		}
 		protocol.sendBestMove(bestMove, ponderMove);
-
+		
 		running = false;
 		suspendedcondition.notify_all();
 	}
 }
 
 int Search::search(int depth, int alpha, int beta, int ply, std::atomic<bool>& abortCondition) {
-	if (ply >= Depth::MAX_PLY) {
-		return evaluation.evaluate(position, heavyStage);
-	}
-
 	if (position.isRepetition() || position.hasInsufficientMaterial() || position.halfmoveClock >= 100) {
 		return Value::DRAW;
+	}
+
+	int threshold = enableBetaThreshold ? beta : Value::INFINITE;
+
+	if (ply >= Depth::MAX_PLY) {
+		return evaluation.evaluate(position, heavyStage, threshold);
 	}
 
 	int bestValue = -Value::INFINITE;
 
 	if (!position.isCheck() && depth <= 0) {
-		bestValue = evaluation.evaluate(position, heavyStage);
+		bestValue = evaluation.evaluate(position, heavyStage, threshold);
 		if (bestValue > alpha) {
 			alpha = bestValue;
 			if (bestValue >= beta) {

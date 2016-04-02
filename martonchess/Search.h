@@ -7,6 +7,7 @@
 #include "Position.h"
 #include "MoveGenerator.h"
 #include "Timer.h"
+#include "FenString.h"
 
 #include <memory>
 #include <chrono>
@@ -16,7 +17,7 @@
 
 class Search {
 public:
-    Search(Protocol& protocol, double stageRatio, double cutoffRatio);
+    Search(Protocol& protocol, double stageRatio, double cutoffRatio, bool enableBetaThreshold);
 
     void newSearch(Position& position, uint64_t searchTime);
     void reset();
@@ -45,7 +46,7 @@ private:
     std::array<MoveGenerator, Depth::MAX_PLY> moveGenerators;
     
     // State
-    Position position;
+    Position& position = FenString::toPosition(FenString::STANDARDPOSITION);
     bool running;
     uint64_t searchTime;
     Timer timer;
@@ -64,6 +65,7 @@ private:
     int bestResponse;
 	double stageRatio;
 	double cutoffRatio;
+	bool enableBetaThreshold;
 
     void stopConditions();
     int search(int depth, int alpha, int beta, int ply, std::atomic<bool>& abortCondition);
