@@ -32,8 +32,10 @@ void MartonChess::run() {
             receiveGo(input);
         } else if (token == "stop") {
             receiveStop();
-        } else if (token == "ponderhit") {
-            receivePonderHit();
+		} else if (token == "wait") {
+			receiveWait(input);
+		} else if (token == "eval") {
+			receiveEval();
         } else if (token == "quit") {
             receiveQuit();
             break;
@@ -45,6 +47,20 @@ void MartonChess::receiveQuit() {
     // We received a quit command. Stop calculating now and
     // cleanup!
     search->exit();
+}
+
+void MartonChess::receiveEval() {
+	Evaluation evaluation;
+	std::ostringstream oss;
+	evaluation.evaluate(*currentPosition, true, -Value::INFINITE, &oss);
+}
+
+void MartonChess::receiveWait(std::istringstream& input) {
+	uint64_t waitTime;
+	if (!(input >> waitTime)) {
+		throw std::exception();
+	}
+	std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
 }
 
 void MartonChess::receiveInitialize() {
@@ -129,8 +145,6 @@ void MartonChess::receivePosition(std::istringstream& input) {
             throw std::exception();
         }
     }
-
-    // Don't start searching though!
 }
 
 void MartonChess::receiveGo(std::istringstream& input) {
@@ -140,51 +154,48 @@ void MartonChess::receiveGo(std::istringstream& input) {
     // command and start the search.
     std::string token;
     input >> token;
-    if (token == "movetime") {
-        uint64_t searchTime;
-        if (input >> searchTime) {
-            search->newSearch(*currentPosition, searchTime);
-        }
-    } else {
-        uint64_t whiteTimeLeft = 1;
-        uint64_t whiteTimeIncrement = 0;
-        uint64_t blackTimeLeft = 1;
-        uint64_t blackTimeIncrement = 0;
-        int searchMovesToGo = 50;
-        bool ponder = false;
+    uint64_t whiteTimeLeft = 1;
+    uint64_t whiteTimeIncrement = 0;
+    uint64_t blackTimeLeft = 1;
+    uint64_t blackTimeIncrement = 0;
+	uint64_t searchTime = 0;
+    int searchMovesToGo = 50;
+    bool ponder = false;
 
-        do {
-            if (token == "wtime") {
-                if (!(input >> whiteTimeLeft)) {
-                    throw std::exception();
-                }
-            } else if (token == "winc") {
-                if (!(input >> whiteTimeIncrement)) {
-                    throw std::exception();
-                }
-            } else if (token == "btime") {
-                if (!(input >> blackTimeLeft)) {
-                    throw std::exception();
-                }
-            } else if (token == "binc") {
-                if (!(input >> blackTimeIncrement)) {
-                    throw std::exception();
-                }
-            } else if (token == "movestogo") {
-                if (!(input >> searchMovesToGo)) {
-                    throw std::exception();
-                }
-            } else if (token == "ponder") {
-                ponder = true;
+    do {
+        if (token == "wtime") {
+            if (!(input >> whiteTimeLeft)) {
+                throw std::exception();
             }
-        } while (input >> token);
-
-        uint64_t searchTime;
-        if (currentPosition->activeColor == Color::WHITE) {
-            searchTime = (whiteTimeLeft - 1000) / searchMovesToGo;
-        } else {
-            searchTime = (blackTimeLeft - 1000) / searchMovesToGo;
+        } else if (token == "winc") {
+            if (!(input >> whiteTimeIncrement)) {
+                throw std::exception();
+            }
+        } else if (token == "btime") {
+            if (!(input >> blackTimeLeft)) {
+                throw std::exception();
+            }
+        } else if (token == "binc") {
+            if (!(input >> blackTimeIncrement)) {
+                throw std::exception();
+            }
+        } else if (token == "movestogo") {
+            if (!(input >> searchMovesToGo)) {
+                throw std::exception();
+            }
+        } else if (token == "movetime") {
+			if (!(input >> searchTime)) {
+				throw std::exception();
+			}
         }
+    } while (input >> token);
+
+	if (searchTime == 0) {
+		if (currentPosition->activeColor == Color::WHITE) {
+			searchTime = (whiteTimeLeft - 1000) / searchMovesToGo;
+		} else {
+			searchTime = (blackTimeLeft - 1000) / searchMovesToGo;
+		}
 
 		if (searchTime < 1000) {
 			if (currentPosition->activeColor == Color::WHITE) {
@@ -194,10 +205,10 @@ void MartonChess::receiveGo(std::istringstream& input) {
 				searchTime = (blackTimeLeft / 10);
 			}
 		}
-        search->newSearch(*currentPosition, searchTime);
-        search->startTimer();
-        
-    }
+	}
+
+    search->newSearch(*currentPosition, searchTime);
+    search->startTimer();
 
     search->resume();
     startTime = std::chrono::system_clock::now();

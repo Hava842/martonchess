@@ -13,13 +13,15 @@ public:
 	static int centerWeight;
 	static int pawnStructureWeight;
 	static int kingSafetyWeight;
+	static int maxMaterial;
 
-    int evaluate(Position& position, bool heavy, int beta);
+    int evaluate(Position& position, bool heavy, int beta, std::ostringstream* output = NULL);
 
 private:
     static const int MAX_WEIGHT = 100;
 	static const int BETA_THRESHOLD = 150;
-
+	
+	double getMaterialRatio(int color, Position& position);
 	int evaluateKingSafety(int color, Position& position);
 	int evaluatePawn(int color, Position& position);
     int evaluateMaterial(int color, Position& position);

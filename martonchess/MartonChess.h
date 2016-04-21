@@ -31,7 +31,9 @@ private:
     void receiveGo(std::istringstream& input);
     void receivePonderHit();
     void receiveStop();
-    void receiveQuit();
+	void receiveWait(std::istringstream& input);
+	void receiveEval();
+	void receiveQuit();
 };
 
 #endif /* MARTONCHESS_H */

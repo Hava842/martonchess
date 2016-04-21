@@ -42,6 +42,7 @@ void Search::reset() {
 	running = false;
 	abort = false;
 	bestResponse = Move::NOMOVE;
+	totalNodes = 0;
 }
 
 void Search::resume() {
@@ -111,10 +112,12 @@ int Search::mainLoop( MoveList<RootEntry>& rootMoves, std::atomic<bool>& abortCo
 
 		rootMoves.sort();
 
+		/*
 		for (int i = 0; i < rootMoves.size; i++) {
 			auto rootMoveEntry = rootMoves.entries[i];
 			std::cout << "move: " << MartonChess::fromMove(rootMoveEntry->move) << "score: " << rootMoveEntry->value << std::endl;
 		}
+*/
 
 		targetCutoff = 0;
 		int targetCutoffValue = 
@@ -171,13 +174,14 @@ void Search::run() {
 			ponderMove = rootMoves.entries[0]->pondermove;
 		}
 		protocol.sendBestMove(bestMove, ponderMove);
-		
+		std::cout << "total nodes searched" << totalNodes;
 		running = false;
 		suspendedcondition.notify_all();
 	}
 }
 
 int Search::search(int depth, int alpha, int beta, int ply, std::atomic<bool>& abortCondition) {
+	totalNodes++;
 	if (position.isRepetition() || position.hasInsufficientMaterial() || position.halfmoveClock >= 100) {
 		return Value::DRAW;
 	}

@@ -4,12 +4,14 @@
 #include "Value.h"
 
 #include <cassert>
+#include <sstream>
 
 int Evaluation::materialWeight = 100;
 int Evaluation::mobilityWeight = 70;
 int Evaluation::centerWeight = 60;
 int Evaluation::pawnStructureWeight = 50;
 int Evaluation::kingSafetyWeight = 60;
+int Evaluation::maxMaterial = 8*100 + 4*325 + 2*500 + 975 + 20000 + 50;
 
 int Evaluation::evaluatePawn(int color, Position& position) {
 	assert(Color::isValid(color));
@@ -18,16 +20,19 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 	int chainedPawnBonus = 10;
 	int doublePawnPenalty = 20;
 	int isolatedPawnPenalty = 20;
-	int backwardPawnPenalty = 10;
+	int backwardPawnPenalty = 20;
+	int doubleisolatedPawnPenalty = 20;
 
 	int chainedPawns = 0;
 	int doublePawns = 0;
 	int isolatedPawns = 0;
 	int backwardPawns = 0;
+	int doubleisolatedPawns = 0;
 
 	for (auto squares1 = position.pieces[color][PieceType::PAWN].squares; squares1 != 0; squares1 = Bitboard::remainder(squares1)) {
 		int square1 = Bitboard::next(squares1);
 		bool isolated = true;
+		bool double_ = false;
 		bool protected_ = false;
 		bool stopcontrolled = false;
 
@@ -51,6 +56,7 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 				// Double pawns
 				if (Square::getFile(square1) == Square::getFile(square2)) {
 					doublePawns++;
+					double_ = true;
 				}
 
 				
@@ -68,6 +74,14 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 					protected_ = true;
 				}
 			}
+		}
+
+		if (isolated) {
+			isolatedPawns++;
+		}
+
+		if (isolated && double_) {
+			doubleisolatedPawns++;
 		}
 
 		// Stop square control
@@ -91,7 +105,8 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 	return chainedPawns * chainedPawnBonus 
 		- isolatedPawns * isolatedPawnPenalty 
 		- backwardPawns * backwardPawnPenalty 
-		- doublePawns * doublePawnPenalty;
+		- doublePawns * doublePawnPenalty
+		- doubleisolatedPawns * doubleisolatedPawnPenalty;
 }
 
 int Evaluation::evaluateKingSafety(int color, Position& position) {
@@ -114,13 +129,36 @@ int Evaluation::evaluateKingSafety(int color, Position& position) {
 	}
 	int pawnShieldCount = Bitboard::bitCount(pawnShield.squares & pawns);
 
-	Bitboard rookShield;
-	if (Square::isValid(square + Square::E)) { pawnShield.add(square + Square::E); }
-	if (Square::isValid(square + Square::W)) { pawnShield.add(square + Square::W); }
-	int rookShieldCount = Bitboard::bitCount(rookShield.squares & rooks);
+	int rookShieldCount = 0;
+	for (auto rookSquares = position.pieces[color][PieceType::ROOK].squares; rookSquares != 0; rookSquares = Bitboard::remainder(rookSquares)) {
+		int rookSquare = Bitboard::next(rookSquares);
+		for (auto rookDirection : Square::rookDirections) {
+			int targetSquare = rookSquare + rookDirection;
 
-	return pawnShieldCount * 5
-		+ rookShieldCount * 15;
+			int cover = 0;
+			while (Square::isValid(targetSquare)) {
+				for (auto kingDirection : Square::kingDirections) {
+					if (targetSquare == square + kingDirection)
+						rookShieldCount++;
+				}
+
+				if (position.board[targetSquare] != Piece::NOPIECE) {
+					cover++;
+				}
+
+				if (cover < 2) {
+					targetSquare += rookDirection;
+				}
+				else {
+					break;
+				}
+			}
+		}
+	}
+	
+
+	return pawnShieldCount * 20
+		+ rookShieldCount * 10;
 }
 
 int Evaluation::evaluateCenter(int color, Position& position) {
@@ -181,42 +219,73 @@ int Evaluation::evaluateCenter(int color, Position& position, int square, const 
 	return center;
 }
 
-int Evaluation::evaluate(Position& position, bool heavy, int beta) {
+double Evaluation::getMaterialRatio(int color, Position& position) {
+	int myColor = position.activeColor;
+	int mymaterial = evaluateMaterial(myColor, position);
+	return mymaterial / maxMaterial;
+}
+
+int Evaluation::evaluate(Position& position, bool heavy, int beta, std::ostringstream* outputstream) {
 	// Initialize
 	int myColor = position.activeColor;
 	int oppositeColor = Color::opposite(myColor);
 	int value = 0;
 
 	// Evaluate material
-	int materialScore = (evaluateMaterial(myColor, position) - evaluateMaterial(oppositeColor, position))
+	int mymaterial = evaluateMaterial(myColor, position);
+	int materialScore = (mymaterial - evaluateMaterial(oppositeColor, position))
 		* materialWeight / MAX_WEIGHT;
+
+
+
 	value += materialScore;
+
+	if (outputstream != NULL) {
+		(*outputstream) << " materialscore: " << mymaterial * materialWeight / MAX_WEIGHT;
+	}
 
 	if (value >= beta + BETA_THRESHOLD) {
 		return value;
 	}
 
 	if (heavy) {
+		double materialRatio = mymaterial / maxMaterial;
+
 		// Evaluate mobility
-		int mobilityScore = (evaluateMobility(myColor, position) - evaluateMobility(oppositeColor, position))
+		int mymobility = evaluateMobility(myColor, position);
+		int mobilityScore = (mymobility - evaluateMobility(oppositeColor, position))
 			* mobilityWeight / MAX_WEIGHT;
 		value += mobilityScore;
+		if (outputstream != NULL) {
+			(*outputstream) << " mobilityscore: " << mymobility * mobilityWeight / MAX_WEIGHT;
+		}
 
 		// Evaluate center control
-		int centerScore = (evaluateCenter(myColor, position) - evaluateCenter(oppositeColor, position))
-			* centerWeight / MAX_WEIGHT;
+		int mycentre = evaluateCenter(myColor, position);
+		int centerScore = (mycentre - evaluateCenter(oppositeColor, position))
+			* materialRatio * centerWeight / MAX_WEIGHT;
 		value += centerScore;
-
+		if (outputstream != NULL) {
+			(*outputstream) << " centrescore: " << int (mycentre * materialRatio * centerWeight / MAX_WEIGHT);
+		}
 
 		// Evaluate Pawn structure
-		int pawnScore = (evaluatePawn(myColor, position) - evaluatePawn(oppositeColor, position))
+		int mypawn = evaluatePawn(myColor, position);
+		int pawnScore = (mypawn - evaluatePawn(oppositeColor, position))
 			* pawnStructureWeight / MAX_WEIGHT;
 		value += pawnScore;
+		if (outputstream != NULL) {
+			(*outputstream) << " pawnscore: " << int(mypawn * pawnStructureWeight / MAX_WEIGHT);
+		}
 
 		// Evaluate King Safety
-		int kingSafetyScore = (evaluateKingSafety(myColor, position) - evaluateKingSafety(oppositeColor, position))
-			* kingSafetyWeight / MAX_WEIGHT;
+		int myking = evaluateKingSafety(myColor, position);
+		int kingSafetyScore = (myking - evaluateKingSafety(oppositeColor, position))
+			* materialRatio * kingSafetyWeight / MAX_WEIGHT;
 		value += kingSafetyScore;
+		if (outputstream != NULL) {
+			(*outputstream) << " kingscore: " << int(myking * materialRatio * kingSafetyWeight / MAX_WEIGHT);
+		}
 	}
 
 	// Add Tempo
@@ -266,10 +335,17 @@ int Evaluation::evaluateMobility(int color, Position& position) {
 		queenMobility += evaluateMobility(color, position, square, Square::queenDirections);
 	}
 
+	int kingMobility = 0;
+	for (auto squares = position.pieces[color][PieceType::KING].squares; squares != 0; squares = Bitboard::remainder(squares)) {
+		int square = Bitboard::next(squares);
+		kingMobility += evaluateMobility(color, position, square, Square::kingDirections);
+	}
+
 	return knightMobility * 4
 		+ bishopMobility * 5
 		+ rookMobility * 2
-		+ queenMobility;
+		+ queenMobility
+		- kingMobility * 2;
 }
 
 int Evaluation::evaluateMobility(int color, Position& position, int square, const std::vector<int>& directions) {
