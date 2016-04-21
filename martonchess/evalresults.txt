@@ -1,0 +1,3 @@
+id name MartonChess
+id author MHavasi
+uciok

@@ -47,12 +47,22 @@ void MartonChess::receiveQuit() {
     // We received a quit command. Stop calculating now and
     // cleanup!
     search->exit();
+	std::cout << "evaluated: " << evalcount << " malformatted: " << malcount
+		<< " time: " << myclock << std::endl;
 }
 
 void MartonChess::receiveEval() {
-	Evaluation evaluation;
-	std::ostringstream oss;
-	evaluation.evaluate(*currentPosition, true, -Value::INFINITE, &oss);
+	if (malformatPosition) {
+		malcount++;
+	}
+	else {
+		auto begin = std::chrono::high_resolution_clock::now();
+		evaluation.evaluate(*currentPosition, true, Value::INFINITE, true);
+		auto end = std::chrono::high_resolution_clock::now();
+		myclock += std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+		evalcount++;
+		std::cout << std::endl;
+	}
 }
 
 void MartonChess::receiveWait(std::istringstream& input) {
@@ -97,7 +107,7 @@ void MartonChess::receiveNewGame() {
 
 void MartonChess::receivePosition(std::istringstream& input) {
     search->suspend();
-
+	malformatPosition = false;
     // We received an position command. Just setup the position.
 
     std::string token;
@@ -107,7 +117,7 @@ void MartonChess::receivePosition(std::istringstream& input) {
 
         if (input >> token) {
             if (token != "moves") {
-                throw std::exception();
+				malformatPosition = true;
             }
         }
     } else if (token == "fen") {
@@ -123,7 +133,7 @@ void MartonChess::receivePosition(std::istringstream& input) {
 
         *currentPosition = FenString::toPosition(fen);
     } else {
-        throw std::exception();
+		malformatPosition = true;
     }
 
     MoveGenerator moveGenerator;
@@ -142,7 +152,7 @@ void MartonChess::receivePosition(std::istringstream& input) {
         }
 
         if (!found) {
-            throw std::exception();
+            malformatPosition = true;
         }
     }
 }

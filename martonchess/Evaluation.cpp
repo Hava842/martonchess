@@ -4,26 +4,26 @@
 #include "Value.h"
 
 #include <cassert>
-#include <sstream>
+#include <iostream>
 
 int Evaluation::materialWeight = 100;
-int Evaluation::mobilityWeight = 70;
-int Evaluation::centerWeight = 60;
-int Evaluation::pawnStructureWeight = 50;
-int Evaluation::kingSafetyWeight = 60;
+int Evaluation::mobilityWeight = 100;
+int Evaluation::centerWeight = 100;
+int Evaluation::pawnStructureWeight = 100;
+int Evaluation::kingSafetyWeight = 100;
 int Evaluation::maxMaterial = 8*100 + 4*325 + 2*500 + 975 + 20000 + 50;
 
 int Evaluation::evaluatePawn(int color, Position& position) {
 	assert(Color::isValid(color));
 	int pawnScore = 0;
 
-	int chainedPawnBonus = 10;
+	int chainedPawnBonus = 20;
 	int doublePawnPenalty = 20;
 	int isolatedPawnPenalty = 20;
 	int backwardPawnPenalty = 20;
-	int doubleisolatedPawnPenalty = 20;
+	int doubleisolatedPawnPenalty = 70;
 
-	int chainedPawns = 0;
+	double chainedPawns = 0;
 	int doublePawns = 0;
 	int isolatedPawns = 0;
 	int backwardPawns = 0;
@@ -38,28 +38,28 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 
 		for (auto squares2 = position.pieces[color][PieceType::PAWN].squares; squares2 != 0; squares2 = Bitboard::remainder(squares2)) {
 			int square2 = Bitboard::next(squares2);
-			if (square1 < square2) {
-				// Chained pawns
-				for (auto direction : Square::pawnDirections[color]) {
-					int targetSquare = square1 + direction;
-					chainedPawns += (targetSquare == square2) ? 1 : 0;
-				}
-				int targetWest = square1 + Square::W;
-				if (Square::isValid(targetWest)) {
-					chainedPawns += (targetWest == square2) ? 1 : 0;
-				}
-				int targetEast = square1 + Square::E;
-				if (Square::isValid(targetEast)) {
-					chainedPawns += (targetEast == square2) ? 1 : 0;
-				}
+			if (square1 == square2) {
+				continue;
+			}
+			// Chained pawns
+			for (auto direction : Square::pawnDirections[color]) {
+				if (direction == Square::N || direction == Square::S)
+					continue;
+				int targetSquare = square1 + direction;
+				chainedPawns += (targetSquare == square2) ? 1 : 0;
+			}
+			int targetWest = square1 + Square::W;
+			if (Square::isValid(targetWest)) {
+				chainedPawns += (targetWest == square2) ? 1 : 0;
+			}
+			int targetEast = square1 + Square::E;
+			if (Square::isValid(targetEast)) {
+				chainedPawns += (targetEast == square2) ? 1 : 0;
+			}
 
-				// Double pawns
-				if (Square::getFile(square1) == Square::getFile(square2)) {
-					doublePawns++;
-					double_ = true;
-				}
-
-				
+			// Double pawns
+			if (Square::getFile(square1) == Square::getFile(square2)) {
+				double_ = true;
 			}
 			// Isolated pawns
 			if (Square::getFile(square1) == Square::getFile(square2) + 1
@@ -70,6 +70,8 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 			// Protected by own pawn
 			for (auto direction : Square::pawnDirections[color]) {
 				int targetSquare = square2 + direction;
+				if (direction == Square::N || direction == Square::S)
+					continue;
 				if (targetSquare == square1) {
 					protected_ = true;
 				}
@@ -78,6 +80,10 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 
 		if (isolated) {
 			isolatedPawns++;
+		}
+
+		if (double_) {
+			doublePawns++;
 		}
 
 		if (isolated && double_) {
@@ -89,7 +95,12 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 		for (auto enemysquares = position.pieces[Color::opposite(color)][PieceType::PAWN].squares; enemysquares != 0; enemysquares = Bitboard::remainder(enemysquares)) {
 			int enemysquare = Bitboard::next(enemysquares);
 
+			if (enemysquare == stopsquare1) {
+				stopcontrolled = true;
+			}
 			for (auto direction : Square::pawnDirections[Color::opposite(color)]) {
+				if (direction == Square::N || direction == Square::S)
+					continue;
 				int targetSquare = enemysquare + direction;
 				if (targetSquare == stopsquare1) {
 					stopcontrolled = true;
@@ -105,8 +116,8 @@ int Evaluation::evaluatePawn(int color, Position& position) {
 	return chainedPawns * chainedPawnBonus 
 		- isolatedPawns * isolatedPawnPenalty 
 		- backwardPawns * backwardPawnPenalty 
-		- doublePawns * doublePawnPenalty
-		- doubleisolatedPawns * doubleisolatedPawnPenalty;
+		- (doublePawns / 2) * doublePawnPenalty
+		- (doubleisolatedPawns / 2) * doubleisolatedPawnPenalty;
 }
 
 int Evaluation::evaluateKingSafety(int color, Position& position) {
@@ -225,7 +236,7 @@ double Evaluation::getMaterialRatio(int color, Position& position) {
 	return mymaterial / maxMaterial;
 }
 
-int Evaluation::evaluate(Position& position, bool heavy, int beta, std::ostringstream* outputstream) {
+int Evaluation::evaluate(Position& position, bool heavy, int beta, bool dumpoutput) {
 	// Initialize
 	int myColor = position.activeColor;
 	int oppositeColor = Color::opposite(myColor);
@@ -240,8 +251,8 @@ int Evaluation::evaluate(Position& position, bool heavy, int beta, std::ostrings
 
 	value += materialScore;
 
-	if (outputstream != NULL) {
-		(*outputstream) << " materialscore: " << mymaterial * materialWeight / MAX_WEIGHT;
+	if (dumpoutput) {
+		std::cout << " materialscore: " << mymaterial * materialWeight / MAX_WEIGHT << " " << materialScore;
 	}
 
 	if (value >= beta + BETA_THRESHOLD) {
@@ -249,15 +260,15 @@ int Evaluation::evaluate(Position& position, bool heavy, int beta, std::ostrings
 	}
 
 	if (heavy) {
-		double materialRatio = mymaterial / maxMaterial;
+		double materialRatio =(double) mymaterial / maxMaterial;
 
 		// Evaluate mobility
 		int mymobility = evaluateMobility(myColor, position);
 		int mobilityScore = (mymobility - evaluateMobility(oppositeColor, position))
 			* mobilityWeight / MAX_WEIGHT;
 		value += mobilityScore;
-		if (outputstream != NULL) {
-			(*outputstream) << " mobilityscore: " << mymobility * mobilityWeight / MAX_WEIGHT;
+		if (dumpoutput) {
+			std::cout << " mobilityscore: " << mymobility * mobilityWeight / MAX_WEIGHT << " " << mobilityScore;
 		}
 
 		// Evaluate center control
@@ -265,8 +276,8 @@ int Evaluation::evaluate(Position& position, bool heavy, int beta, std::ostrings
 		int centerScore = (mycentre - evaluateCenter(oppositeColor, position))
 			* materialRatio * centerWeight / MAX_WEIGHT;
 		value += centerScore;
-		if (outputstream != NULL) {
-			(*outputstream) << " centrescore: " << int (mycentre * materialRatio * centerWeight / MAX_WEIGHT);
+		if (dumpoutput) {
+			std::cout << " centrescore: " << int (mycentre * materialRatio * centerWeight / MAX_WEIGHT) << " " << centerScore;
 		}
 
 		// Evaluate Pawn structure
@@ -274,8 +285,8 @@ int Evaluation::evaluate(Position& position, bool heavy, int beta, std::ostrings
 		int pawnScore = (mypawn - evaluatePawn(oppositeColor, position))
 			* pawnStructureWeight / MAX_WEIGHT;
 		value += pawnScore;
-		if (outputstream != NULL) {
-			(*outputstream) << " pawnscore: " << int(mypawn * pawnStructureWeight / MAX_WEIGHT);
+		if (dumpoutput) {
+			std::cout << " pawnscore: " << int(mypawn * pawnStructureWeight / MAX_WEIGHT) << " " << pawnScore;
 		}
 
 		// Evaluate King Safety
@@ -283,8 +294,8 @@ int Evaluation::evaluate(Position& position, bool heavy, int beta, std::ostrings
 		int kingSafetyScore = (myking - evaluateKingSafety(oppositeColor, position))
 			* materialRatio * kingSafetyWeight / MAX_WEIGHT;
 		value += kingSafetyScore;
-		if (outputstream != NULL) {
-			(*outputstream) << " kingscore: " << int(myking * materialRatio * kingSafetyWeight / MAX_WEIGHT);
+		if (dumpoutput) {
+			std::cout << " kingscore: " << int(myking * materialRatio * kingSafetyWeight / MAX_WEIGHT) << " " << kingSafetyScore;
 		}
 	}
 
@@ -341,11 +352,11 @@ int Evaluation::evaluateMobility(int color, Position& position) {
 		kingMobility += evaluateMobility(color, position, square, Square::kingDirections);
 	}
 
-	return knightMobility * 4
-		+ bishopMobility * 5
-		+ rookMobility * 2
+	return knightMobility * 3
+		+ bishopMobility * 4
+		+ rookMobility 
 		+ queenMobility
-		- kingMobility * 2;
+		- kingMobility ;
 }
 
 int Evaluation::evaluateMobility(int color, Position& position, int square, const std::vector<int>& directions) {

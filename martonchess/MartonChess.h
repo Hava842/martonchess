@@ -3,6 +3,7 @@
 
 #include "Search.h"
 #include "FenString.h"
+#include <time.h> 
 
 class MartonChess : public Protocol {
 public:
@@ -23,6 +24,12 @@ private:
     std::chrono::system_clock::time_point statusStartTime;
 
     std::unique_ptr<Position> currentPosition = std::unique_ptr<Position>(new Position(FenString::toPosition(FenString::STANDARDPOSITION)));
+	bool malformatPosition = false;
+	int evalcount = 0;
+	int malcount = 0;
+	int myclock = 0;
+	Evaluation evaluation;
+
 
     void receiveInitialize();
     void receiveReady();

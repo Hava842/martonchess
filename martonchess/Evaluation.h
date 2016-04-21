@@ -15,7 +15,7 @@ public:
 	static int kingSafetyWeight;
 	static int maxMaterial;
 
-    int evaluate(Position& position, bool heavy, int beta, std::ostringstream* output = NULL);
+    int evaluate(Position& position, bool heavy, int beta, bool dumpoutput = false);
 
 private:
     static const int MAX_WEIGHT = 100;

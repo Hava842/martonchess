@@ -1,4 +1,5 @@
 ﻿  Evaluation.cpp
-c:\users\marci\source\repos\martonchess\martonchess\evaluation.cpp(266): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\marci\source\repos\martonchess\martonchess\evaluation.cpp(284): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-LINK : fatal error LNK1104: cannot open file 'C:\Users\Marci\Source\Repos\martonchess\MartonChess\Debug\martonchess.exe'
+c:\users\marci\source\repos\martonchess\martonchess\evaluation.cpp(120): warning C4244: 'return': conversion from 'double' to 'int', possible loss of data
+c:\users\marci\source\repos\martonchess\martonchess\evaluation.cpp(277): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\marci\source\repos\martonchess\martonchess\evaluation.cpp(295): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  martonchess.vcxproj -> C:\Users\Marci\Source\Repos\martonchess\MartonChess\Debug\martonchess.exe
